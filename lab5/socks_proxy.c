@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <sys/select.h>
 #include <errno.h>
+#include <netdb.h> // gethostbyname, 
 
 #define BUFFER_SIZE 4096
 #define MAX_CLIENTS 100
@@ -272,8 +273,9 @@ int main(int argc, char *argv[]) {
                         continue;
                     }
                     
-                    // обработка типа адреса 
-                    if (clients[i].buffer[3] == SOCKS_ATYP_IPV4) {
+                    // обработка типа адреса - либо IPv4 либо надо резолвить доменное имя
+                    uint8_t atyp = clients[i].buffer[3];
+                    if (atyp == SOCKS_ATYP_IPV4) {
                         // извлечение IPv4 адреса
                         memcpy(&clients[i].dest_addr.sin_addr, &clients[i].buffer[4], 4);
                         clients[i].dest_addr.sin_port = *(uint16_t*)&clients[i].buffer[8];
@@ -330,9 +332,87 @@ int main(int argc, char *argv[]) {
                         
                         printf("клиент %s:%d успешно подключился к целевому серверу %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), 
                             inet_ntoa(clients[i].dest_addr.sin_addr), ntohs(clients[i].dest_addr.sin_port));
+                    } else if (atyp == SOCKS_ATYP_DOMAIN) {
+                        // длина домена
+                        uint8_t domain_len = clients[i].buffer[4];
+                        
+                        // копи домена во временный буфер
+                        char domain[256];
+                        if (domain_len > sizeof(domain) - 1) {
+                            domain_len = sizeof(domain) - 1;
+                        }
+                        memcpy(domain, &clients[i].buffer[5], domain_len);
+                        domain[domain_len] = '\0';
+                        
+                        // порт (последние 2 байта)
+                        uint16_t port = ntohs(*(uint16_t*)&clients[i].buffer[5 + domain_len]);
+                        
+                        printf("[debug] запрос на подключение к доменному имени: %s:%d\n", domain, port);
+
+                        // теперь непосредственно разрешение доменного имени в IPv4 адрес
+                        struct hostent *host = gethostbyname(domain); // возвращает структуру hostent с информацией о domain
+                        if (!host || !host->h_addr_list[0]) {
+                            perror("[debug] DNS resolution failed");
+                            char response[] = {SOCKS_VERSION, 0x04}; // domain name not found
+
+                            send(clients[i].fd, response, sizeof(response), 0);
+                            close(clients[i].fd);
+                            clients[i].fd = 0;
+                            continue;
+                        }
+
+                        // копирование первого IPv4 адреса из host->h_addr_list в clients[i].dest_addr чтобы подключиться к этому IP-адресу через connect()
+                        memcpy(&clients[i].dest_addr.sin_addr, host->h_addr_list[0], host->h_length);
+                        clients[i].dest_addr.sin_port = htons(port);
+                        clients[i].dest_addr.sin_family = AF_INET;
+
+                        // сокет для целевого сервера
+                        int target_fd = socket(AF_INET, SOCK_STREAM, 0);
+                        if (target_fd < 0) {
+                            perror("[debug] socket creation failed");
+                            close(clients[i].fd);
+                            clients[i].fd = 0;
+                            continue;
+                        }
+                        
+                        set_nonblock(target_fd);
+
+                        // в неблокирующем режиме connect возвращает EINPROGRESS - соединение начато, но не завершено (в процессе) -> не считаю ошибкой
+                        if ((connect(target_fd, (struct sockaddr*)&clients[i].dest_addr, sizeof(clients[i].dest_addr)) < 0) && (errno != EINPROGRESS)) {
+                            perror("[debug] connect failed");
+                            close(target_fd);
+                            close(clients[i].fd);
+                            clients[i].fd = 0;
+                            continue;
+                        }
+                        
+                        clients[i].target_fd = target_fd;
+                        clients[i].state = 2;
+                        clients[i].buf_len = 0;
+                        
+                        // "успешный" ответ на запрос клиента
+                        char response[10] = {
+                            SOCKS_VERSION, 
+                            0x00, // status: request granted 
+                            0x00, // reserved, must be 0x00
+                            SOCKS_ATYP_IPV4
+                        };
+                        memcpy(response + 4, &clients[i].dest_addr.sin_addr, 4); // копирую в ответ клиенту резолвенутый IPv4 адрес
+                        memcpy(response + 8, &clients[i].dest_addr.sin_port, 2); // и порт
+                        
+                        send(clients[i].fd, response, 10, 0);
+
+                        printf("[debug] SOCKS5 Response packet from server для %s:%d: ", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+                        for (int j = 0; j < sizeof(response); j++) {
+                            printf("%02X ", (unsigned char)response[j]);
+                        }
+                        printf("\n");
+
+                        printf("клиент %s:%d успешно подключился к целевому серверу %s:%d.\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), 
+                            inet_ntoa(clients[i].dest_addr.sin_addr), ntohs(clients[i].dest_addr.sin_port));
                     } else {
                         // не реализована обработОЧКА других типов
-                        printf("[debug] ошибка типа адреса SOCKS. Ожидается %d, получено %d\n", SOCKS_ATYP_IPV4, clients[i].buffer[3]);
+                        printf("[debug] ошибка типа адреса SOCKS. Ожидается %d, получено %d\n", SOCKS_ATYP_IPV4, atyp);
 
                         char response[] = {SOCKS_VERSION, 0x08}; // address type not supported
                         send(clients[i].fd, response, sizeof(response), 0);

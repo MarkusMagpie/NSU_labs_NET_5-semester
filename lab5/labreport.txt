@@ -53,9 +53,13 @@ SOCKS-прокси
 
     как запускать: 
         1 терминал: 
-            gcc -o proxy socks_proxy.c && sudo ./proxy 80
+            gcc -o proxy socks_proxy.c && sudo ./proxy 1080
         2 терминал: 
-            curl -v --socks5-hostname 127.0.0.1:5000 http://example.com
+            curl -v --socks5 127.0.0.1:1080 http://example.com
+            curl -v --socks5-hostname localhost:1080 http://example.com
+
+        --socks5 - curl сам разрешает доменное имя в IP-адрес (ATYP = 0x01)
+        --socks5-hostname - curl отправляет доменное имя моему прокси-серверу для резолвинга (ATYP = 0x03) 
 
     команды:
         FD_ZERO - обнуление всего множества
