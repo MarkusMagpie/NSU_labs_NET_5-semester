@@ -36,8 +36,8 @@ void set_nonblock(int fd) {
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        printf("[main] неверное количество аргументов, замена на дефолтные: port: 80\n");
-        argv[1] = "80";
+        printf("[main] неверное количество аргументов, замена на дефолтные: port: 1080\n");
+        argv[1] = "1080";
     }
 
     int port = atoi(argv[1]);
