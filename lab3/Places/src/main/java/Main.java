@@ -1,4 +1,5 @@
 import dto.Location;
+import dto.Place;
 import service.ApiService;
 
 import java.util.List;
@@ -34,6 +35,17 @@ public class Main {
                     return apiService.getWeather(selectedLocation)
                             .thenApply(weather -> {
                                 System.out.println("Current weather in " + selectedLocation.getName() + ": " + weather);
+                                return selectedLocation; // возврат локациии для будущих операций
+                            });
+                })
+                .thenCompose(selectedLocation -> {
+                    return apiService.getPlaces(selectedLocation)
+                            .thenApply(places -> {
+                                System.out.println("Sights near " + selectedLocation.getName() + ":");
+                                for (int i = 0; i < places.size(); i++) {
+                                    Place place = places.get(i);
+                                    System.out.printf("%d - %s\n", i + 1, place);
+                                }
                                 return selectedLocation; // возврат локациии для будущих операций
                             });
                 })

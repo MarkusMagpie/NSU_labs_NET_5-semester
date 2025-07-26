@@ -25,6 +25,6 @@ public class Place {
 
     @Override
     public String toString() {
-        return "place [name: " + name + ", xid: " + xid + "]";
+        return name + " (" + xid + ")";
     }
 }
