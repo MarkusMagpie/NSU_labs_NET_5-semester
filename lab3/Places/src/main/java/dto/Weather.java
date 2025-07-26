@@ -4,8 +4,6 @@ public class Weather {
     private double temperature;
     private String description;
 
-    public Weather() {}
-
     public Weather(double temperature, String description) {
         this.temperature = temperature;
         this.description = description;
@@ -27,7 +25,7 @@ public class Weather {
 
     @Override
     public String toString() {
-        return "weather [temperature: " + temperature + ", description: " + description + "]";
+        return "\n\ttemperature: " + temperature + ";\n\tdescription: " + description + ".";
     }
 
 }

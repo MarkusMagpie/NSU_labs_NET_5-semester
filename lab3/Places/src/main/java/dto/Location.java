@@ -5,9 +5,6 @@ public class Location {
     private double lattitude;
     private double longitude;
 
-    // default constructor нужно для jackson
-    public Location() {}
-
     public Location(String name, double lattitude, double longitude) {
         this.name = name;
         this.lattitude = lattitude;
@@ -33,10 +30,5 @@ public class Location {
     }
     public void setLongitude(double longitude) {
         this.longitude = longitude;
-    }
-
-    @Override
-    public String toString() {
-        return "location [nam: =" + name + ", lattitude: " + lattitude + ", longitude: " + longitude + "]";
     }
 }

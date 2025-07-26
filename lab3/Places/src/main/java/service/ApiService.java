@@ -15,9 +15,9 @@ public class ApiService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    // https://graphhopper.com/dashboard/api-keys
-    private final String GEOKODE_API_KEY = "c29183d1-b794-4ca7-866f-dd74f0d4020a";
 
+
+    // получение списка локаций
     public CompletableFuture<List<Location>> searchLocations(String query) {
         String url = "https://graphhopper.com/api/1/geocode?q=" + query + "&key=" + GEOKODE_API_KEY;
         HttpRequest request = HttpRequest.newBuilder().
@@ -35,15 +35,14 @@ public class ApiService {
     {
         "name": "Москва",
         "point": {
-            "lat": 55.7523,
-            "lng": 37.6156
+            "lat": x,
+            "lng": y
         },
         "...": ...
     },
     {...}
     ]
      */
-
     public List<Location> parseLocations(String response) {
         try {
             List<Location> locations = new ArrayList<>();
@@ -62,17 +61,39 @@ public class ApiService {
         } catch (Exception e) {
             throw new RuntimeException("JSON parsing error", e);
         }
-
     }
 
     // получение погоды по координатам
-    public CompletableFuture<Weather> getWeather(Location location, double lattitude, double longitude) {
-        // TODO
-        return null;
+    public CompletableFuture<Weather> getWeather(Location location) {
+        String url = "https://api.openweathermap.org/data/2.5/weather?lat="
+                + location.getLattitude()
+                + "&lon=" + location.getLongitude()
+                + "&appid=" + WEATHER_API_KEY
+                + "&units=metric";
+        HttpRequest request = HttpRequest.newBuilder().
+                uri(URI.create(url)).
+                build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    return parseWeather(response.body());
+                });
+    }
+
+    // пример JSON ответа и почему парсинг именно такой смотри здесь: https://openweathermap.org/current
+    public Weather parseWeather(String response) {
+        try {
+            JsonNode root = mapper.readTree(response);
+            double temp = root.path("main").path("temp").asDouble();
+            String desc = root.path("weather").get(0).path("description").asText();
+            return new Weather(temp, desc);
+        } catch (Exception e) {
+            throw new RuntimeException("JSON parsing error", e);
+        }
     }
 
     // получение списка интеренсых мест в локации
-    public CompletableFuture<List<Place>> getPlaces(double lattitude, double longitude) {
+    public CompletableFuture<List<Place>> getPlaces(Location location) {
         // TODO
         return null;
     }

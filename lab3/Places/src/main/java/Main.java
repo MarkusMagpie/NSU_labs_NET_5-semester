@@ -1,6 +1,5 @@
 import dto.Location;
 import service.ApiService;
-import dto.Result;
 
 import java.util.List;
 import java.util.Scanner;
@@ -21,7 +20,7 @@ public class Main {
                     System.out.println("\nFound locations:");
                     for (int i = 0; i < locations.size(); i++) {
                         Location loc = locations.get(i);
-                        System.out.printf("%d - %s (%.2f, %.2f)\n", i + 1, loc.getName(), loc.getLattitude(), loc.getLongitude());
+                        System.out.printf("%d - %s (%.3f, %.3f)\n", i + 1, loc.getName(), loc.getLattitude(), loc.getLongitude());
                     }
                     return locations;
                 })
@@ -30,8 +29,17 @@ public class Main {
                     int choice = scanner.nextInt();
                     return locations.get(choice - 1);
                 })
-                .thenAccept(selectedLocation -> {
-                    System.out.printf("\nYou chose: %s (%.2f, %.2f)\n", selectedLocation.getName(), selectedLocation.getLattitude(), selectedLocation.getLongitude());
+                .thenCompose(selectedLocation -> {
+                    System.out.printf("\nYou chose: %s (%.3f, %.3f)\n", selectedLocation.getName(), selectedLocation.getLattitude(), selectedLocation.getLongitude());
+                    return apiService.getWeather(selectedLocation)
+                            .thenApply(weather -> {
+                                System.out.println("Current weather in " + selectedLocation.getName() + ": " + weather);
+                                return selectedLocation; // возврат локациии для будущих операций
+                            });
+                })
+                .exceptionally(ex -> {
+                    System.out.println("Error: " + ex.getMessage());
+                    return null;
                 })
                 .join(); // блок только здесь для ожидания результата
 

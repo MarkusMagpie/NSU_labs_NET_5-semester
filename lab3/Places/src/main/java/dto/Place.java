@@ -4,8 +4,6 @@ public class Place {
     private String name;
     private String xid; // id места
 
-    public Place() {}
-
     public Place(String name, String xid) {
         this.name = name;
         this.xid = xid;
