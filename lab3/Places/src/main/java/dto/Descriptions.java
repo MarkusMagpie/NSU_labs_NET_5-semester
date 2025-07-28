@@ -25,6 +25,6 @@ public class Descriptions {
 
     @Override
     public String toString() {
-        return "description [name: " + name + ", description: " + description + "]";
+        return name + "\n    Description: " + description;
     }
 }

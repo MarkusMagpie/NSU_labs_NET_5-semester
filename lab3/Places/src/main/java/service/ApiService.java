@@ -128,14 +128,29 @@ public class ApiService {
         }
     }
 
-    // получение подробного описания места по xid
-    public CompletableFuture<Descriptions> getPlaceDetail(String xid) {
-        // TODO
-        return null;
+    public CompletableFuture<Descriptions> getDescription(Place place) {
+        String url = String.format("https://api.opentripmap.com/0.1/ru/places/xid/%s?apikey=%s",
+                place.getXid(), OPENTRIPMAP_API_KEY);
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    String description = parseDescription(response.body());
+                    return new Descriptions(place.getName(), description);
+                });
     }
 
-    public CompletableFuture<Result> searchAndFetchAll(String query) {
-        // TODO
-        return null;
+    private String parseDescription(String json) {
+        try {
+            JsonNode root = mapper.readTree(json);
+            // попытка взять текст из wikipedia_extracts
+            JsonNode wiki = root.path("wikipedia_extracts");
+            if (wiki.has("text") && !wiki.path("text").asText().isBlank()) {
+                return wiki.path("text").asText();
+            }
+            return "";  // описания нет
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse place description", e);
+        }
     }
 }

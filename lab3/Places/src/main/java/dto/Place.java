@@ -22,9 +22,4 @@ public class Place {
     public void setXid(String xid) {
         this.xid = xid;
     }
-
-    @Override
-    public String toString() {
-        return name + " (" + xid + ")";
-    }
 }
