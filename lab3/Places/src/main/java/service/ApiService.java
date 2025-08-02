@@ -14,11 +14,6 @@ public class ApiService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    // https://graphhopper.com/dashboard/api-keys
-    private final String GRAPHHOPPER_API_KEY = "e74a7b4c-9b53-4461-a180-69383c2a2648";
-    // https://home.openweathermap.org/api_keys
-    private final String OPENWEATHERMAP_API_KEY = "9f27f9c42592cd5cb93fd307aea0719e";
-    private final String OPENTRIPMAP_API_KEY = "5ae2e3f221c38a28845f05b616d0c30c49e93cb5171b0d9dc3389917";
 
     // получение списка локаций
     public CompletableFuture<List<Location>> searchLocations(String query) {
