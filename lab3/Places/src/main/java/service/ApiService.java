@@ -14,8 +14,6 @@ public class ApiService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-
-    // получение списка локаций
     public CompletableFuture<List<Location>> searchLocations(String query) {
         String url = "https://graphhopper.com/api/1/geocode?q=" + query + "&key=" + GRAPHHOPPER_API_KEY;
         HttpRequest request = HttpRequest.newBuilder().
@@ -28,19 +26,6 @@ public class ApiService {
                 });
     }
 
-    /*
-    "hits": [
-    {
-        "name": "Москва",
-        "point": {
-            "lat": x,
-            "lng": y
-        },
-        "...": ...
-    },
-    {...}
-    ]
-     */
     public List<Location> parseLocations(String json) {
         try {
             List<Location> locations = new ArrayList<>();
@@ -62,7 +47,7 @@ public class ApiService {
         }
     }
 
-    // получение погоды по координатам
+    // пример JSON запроса и ответа: https://openweathermap.org/current
     public CompletableFuture<Weather> getWeather(Location location) {
         String url = "https://api.openweathermap.org/data/2.5/weather?lat="
                 + location.getLattitude()
@@ -79,7 +64,6 @@ public class ApiService {
                 });
     }
 
-    // пример JSON ответа и почему парсинг именно такой смотри здесь: https://openweathermap.org/current
     public Weather parseWeather(String json) {
         try {
             JsonNode root = mapper.readTree(json);
@@ -92,7 +76,6 @@ public class ApiService {
         }
     }
 
-    // получение списка интеренсых мест в локации
     public CompletableFuture<List<Place>> getPlaces(Location location) {
         String url = "https://api.opentripmap.com/0.1/ru/places/radius"
                 + "?radius=1000"
@@ -116,9 +99,10 @@ public class ApiService {
             JsonNode root = mapper.readTree(json);
             JsonNode features = root.path("features");
             for (JsonNode f : features) {
-                JsonNode props = f.path("properties");
-                String name = props.path("name").asText();
-                String xid  = props.path("xid").asText();
+                JsonNode properties = f.path("properties");
+                String name = properties.path("name").asText();
+                String xid  = properties.path("xid").asText();
+
                 list.add(new Place(name, xid));
             }
 
@@ -129,8 +113,9 @@ public class ApiService {
     }
 
     public CompletableFuture<Descriptions> getDescription(Place place) {
-        String url = String.format("https://api.opentripmap.com/0.1/ru/places/xid/%s?apikey=%s",
-                place.getXid(), OPENTRIPMAP_API_KEY);
+        String url = "https://api.opentripmap.com/0.1/ru/places/xid/"
+                + place.getXid()
+                + "?apikey=" + OPENTRIPMAP_API_KEY;
         HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -143,12 +128,12 @@ public class ApiService {
     public String parseDescription(String json) {
         try {
             JsonNode root = mapper.readTree(json);
-            // попытка взять текст из wikipedia_extracts
             JsonNode wiki = root.path("wikipedia_extracts");
             if (wiki.has("text") && !wiki.path("text").asText().isBlank()) {
                 return wiki.path("text").asText();
+            } else {
+                return "No description";
             }
-            return "";  // описания нет
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse place description", e);
         }
