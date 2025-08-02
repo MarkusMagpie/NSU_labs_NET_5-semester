@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.*;
 
-
 import java.net.URI;
 import java.net.http.*;
 import java.util.ArrayList;
@@ -15,9 +14,15 @@ public class ApiService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
+    // https://graphhopper.com/dashboard/api-keys
+    private final String GRAPHHOPPER_API_KEY = "e74a7b4c-9b53-4461-a180-69383c2a2648";
+    // https://home.openweathermap.org/api_keys
+    private final String OPENWEATHERMAP_API_KEY = "9f27f9c42592cd5cb93fd307aea0719e";
+    private final String OPENTRIPMAP_API_KEY = "5ae2e3f221c38a28845f05b616d0c30c49e93cb5171b0d9dc3389917";
+
     // получение списка локаций
     public CompletableFuture<List<Location>> searchLocations(String query) {
-        String url = "https://graphhopper.com/api/1/geocode?q=" + query + "&key=" + GEOKODE_API_KEY;
+        String url = "https://graphhopper.com/api/1/geocode?q=" + query + "&key=" + GRAPHHOPPER_API_KEY;
         HttpRequest request = HttpRequest.newBuilder().
                 uri(URI.create(url)).
                 build();
@@ -41,10 +46,10 @@ public class ApiService {
     {...}
     ]
      */
-    public List<Location> parseLocations(String response) {
+    public List<Location> parseLocations(String json) {
         try {
             List<Location> locations = new ArrayList<>();
-            JsonNode root = mapper.readTree(response);
+            JsonNode root = mapper.readTree(json);
             JsonNode hits = root.path("hits");
 
             for (JsonNode hit : hits) {
@@ -67,7 +72,7 @@ public class ApiService {
         String url = "https://api.openweathermap.org/data/2.5/weather?lat="
                 + location.getLattitude()
                 + "&lon=" + location.getLongitude()
-                + "&appid=" + WEATHER_API_KEY
+                + "&appid=" + OPENWEATHERMAP_API_KEY
                 + "&units=metric";
         HttpRequest request = HttpRequest.newBuilder().
                 uri(URI.create(url)).
@@ -80,9 +85,9 @@ public class ApiService {
     }
 
     // пример JSON ответа и почему парсинг именно такой смотри здесь: https://openweathermap.org/current
-    public Weather parseWeather(String response) {
+    public Weather parseWeather(String json) {
         try {
-            JsonNode root = mapper.readTree(response);
+            JsonNode root = mapper.readTree(json);
             double temp = root.path("main").path("temp").asDouble();
             String desc = root.path("weather").get(0).path("description").asText();
 
@@ -110,7 +115,7 @@ public class ApiService {
                 });
     }
 
-    private List<Place> parsePlaces(String json) {
+    public List<Place> parsePlaces(String json) {
         try {
             List<Place> list = new ArrayList<>();
             JsonNode root = mapper.readTree(json);
@@ -140,7 +145,7 @@ public class ApiService {
                 });
     }
 
-    private String parseDescription(String json) {
+    public String parseDescription(String json) {
         try {
             JsonNode root = mapper.readTree(json);
             // попытка взять текст из wikipedia_extracts

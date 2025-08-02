@@ -25,7 +25,6 @@ public class Weather {
 
     @Override
     public String toString() {
-        return "\n\ttemperature: " + temperature + "\u2103;\n\tdescription: " + description + ".";
+        return String.format("\n\ttemperature: %.3f°C; \n\tdescription: %s.", temperature, description);
     }
-
 }

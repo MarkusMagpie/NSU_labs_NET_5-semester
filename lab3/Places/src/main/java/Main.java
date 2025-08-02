@@ -1,7 +1,6 @@
-import dto.Descriptions;
-import dto.Location;
-import dto.Place;
+import dto.*;
 import service.ApiService;
+import gui.PlacesGUI;
 
 import java.util.List;
 import java.util.Scanner;
@@ -12,6 +11,9 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ApiService apiService = new ApiService();
+
+//        PlacesGUI gui = new PlacesGUI();
+//        gui.setVisible(true);
 
         System.out.print("Please enter a name of place: ");
         String query = scanner.nextLine();

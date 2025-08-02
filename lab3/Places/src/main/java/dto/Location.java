@@ -31,4 +31,9 @@ public class Location {
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%.3f, %.3f)", name, lattitude, longitude);
+    }
 }
