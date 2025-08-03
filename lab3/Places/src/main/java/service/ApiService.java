@@ -14,6 +14,18 @@ public class ApiService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
+    // https://graphhopper.com/dashboard/api-keys
+    private final String GRAPHHOPPER_API_KEY;
+    // https://home.openweathermap.org/api_keys
+    private final String OPENWEATHERMAP_API_KEY;
+    private final String OPENTRIPMAP_API_KEY;
+
+    public ApiService() {
+        this.GRAPHHOPPER_API_KEY = System.getenv("GRAPHHOPPER_API_KEY");
+        this.OPENWEATHERMAP_API_KEY = System.getenv("OPENWEATHERMAP_API_KEY");
+        this.OPENTRIPMAP_API_KEY = System.getenv("OPENTRIPMAP_API_KEY");
+    }
+
     public CompletableFuture<List<Location>> searchLocations(String query) {
         String url = "https://graphhopper.com/api/1/geocode?q=" + query + "&key=" + GRAPHHOPPER_API_KEY;
         HttpRequest request = HttpRequest.newBuilder().

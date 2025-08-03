@@ -19,7 +19,6 @@ public class Main {
         String query = scanner.nextLine();
 
         apiService.searchLocations(query)
-                // 1 вывожу + выбираю локацию
                 .thenApply(locations -> {
                     System.out.println("\nFound locations:");
                     for (int i = 0; i < locations.size(); i++) {
@@ -30,7 +29,6 @@ public class Main {
                     int choice = scanner.nextInt();
                     return locations.get(choice - 1);
                 })
-                // 2 получаю + вывожу погоду
                 .thenCompose(selectedLocation -> {
                     System.out.printf("\nYou chose: %s (%.3f, %.3f)\n", selectedLocation.getName(), selectedLocation.getLattitude(), selectedLocation.getLongitude());
                     return apiService.getWeather(selectedLocation)
@@ -39,15 +37,12 @@ public class Main {
                                 return selectedLocation; // возврат локациии для будущих операций
                             });
                 })
-                // 3 получаю + вывожу интересные места
                 .thenCompose(selectedLocation -> apiService.getPlaces(selectedLocation)
                         .thenCompose(places -> {
-                            // список для получения деталей каждого места
                             List<CompletableFuture<Descriptions>> detailsFutures = places.stream()
-                                    .map(place -> apiService.getDescription(place))
+                                    .map(apiService::getDescription)
                                     .collect(Collectors.toList());
 
-                            // преобразование списка
                             CompletableFuture<Void> allDone = CompletableFuture.allOf(
                                     detailsFutures.toArray(new CompletableFuture[0])
                             );
@@ -71,7 +66,7 @@ public class Main {
                     System.out.println("Error: " + ex.getMessage());
                     return null;
                 })
-                .join(); // блок только здесь для ожидания результата
+                .join();
 
         scanner.close();
     }
