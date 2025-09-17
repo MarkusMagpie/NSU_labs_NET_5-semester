@@ -20,6 +20,8 @@ void send_multicast_message(char *host, int port, int family) {
     // сколько маршрутизаторов пройдет пакет 
     if (family == AF_INET) { // IPv4
         int ttl = 2;
+        // IP_MULTICAST_TTL - socket option used in network programming to set the Time To Live (TTL) 
+        // for outgoing multicast packets, controlling how far they can travel across a network
         if (setsockopt(sock_fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0) {
             printf("IPv4: setsockopt failed");
             close(sock_fd);
@@ -74,9 +76,9 @@ void send_multicast_message(char *host, int port, int family) {
 }
 
 char **receive_multicast_messages(int sock, int *count) {
-    *count = 0;
-    char **list = NULL;
-    char buf[BUFFER_SIZE];
+    *count = 0; // счетчик найденных IP адресов
+    char **list = NULL; // массив IP адресов
+    char buf[BUFFER_SIZE]; // буфер для чтения UDP-пакетов по сокету
     struct sockaddr_storage src;
     socklen_t srclen = sizeof(src);
 
@@ -103,6 +105,7 @@ char **receive_multicast_messages(int sock, int *count) {
         }
         list = tmp;
 
+        // выделяю память и копирую туда ipstr - IP адрес отправителя
         list[*count] = strdup(ipstr);
         if (!list[*count]) {
             printf("strdup failed\n");
