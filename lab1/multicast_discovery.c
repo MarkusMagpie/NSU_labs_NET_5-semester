@@ -10,14 +10,14 @@
 #define BUFFER_SIZE 1024
 
 void send_multicast_message(char *host, int port, int family) {
-    // создаю UDP сокет
+    // создаю UDP сокет в зависимости от family
     int sock_fd = socket(family, SOCK_DGRAM, 0);
     if (sock_fd < 0) {
         printf("socket creation failed");
         return;
     }
 
-    // сколько маршрутизаторов пройдет пакет 
+    // сколько маршрутизаторов пройдет пакет - TTL
     if (family == AF_INET) { // IPv4
         int ttl = 2;
         // IP_MULTICAST_TTL - socket option used in network programming to set the Time To Live (TTL) 
@@ -41,7 +41,7 @@ void send_multicast_message(char *host, int port, int family) {
         struct sockaddr_in dest4 = {0};
         dest4.sin_family = AF_INET;
         dest4.sin_port = htons(port);
-        // pton <-> Presentation to Network - преобразовать IP в сетевой бинарный формат
+        // pton <-> Presentation to Network - преобразовать IP host-а в сетевой бинарный формат
         if (inet_pton(AF_INET, host, &dest4.sin_addr) != 1) {
             printf("IPv4: не удалось преобразовать IP: %s\n", host);
             close(sock_fd);
@@ -79,7 +79,7 @@ char **receive_multicast_messages(int sock, int *count) {
     *count = 0; // счетчик найденных IP адресов
     char **list = NULL; // массив IP адресов
     char buf[BUFFER_SIZE]; // буфер для чтения UDP-пакетов по сокету
-    struct sockaddr_storage src;
+    struct sockaddr_storage src; // указатель на буфер в структуре sockaddr, который будет содержать исходный адрес при возврате.
     socklen_t srclen = sizeof(src);
 
     while (1) {
