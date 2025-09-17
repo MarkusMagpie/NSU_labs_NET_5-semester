@@ -19,7 +19,7 @@ void send_multicast_message(char *host, int port, int family) {
 
     // сколько маршрутизаторов пройдет пакет - TTL
     if (family == AF_INET) { // IPv4
-        int ttl = 2;
+        int ttl = 3;
         // IP_MULTICAST_TTL - socket option used in network programming to set the Time To Live (TTL) 
         // for outgoing multicast packets, controlling how far they can travel across a network
         if (setsockopt(sock_fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0) {
@@ -28,7 +28,7 @@ void send_multicast_message(char *host, int port, int family) {
             return;
         }
     } else { // IPv6
-        int hops = 2;
+        int hops = 3;
         if (setsockopt(sock_fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops, sizeof(hops)) < 0) {
             printf("IPv6: setsockopt failed");
             close(sock_fd);
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
         }
         free(res);
 
-        sleep(1);
+        // sleep(1);
     }
 
     close(sock_fd);
