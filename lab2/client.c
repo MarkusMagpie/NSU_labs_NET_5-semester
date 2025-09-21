@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
         close(client_fd);
         exit(EXIT_FAILURE);
     }
+    printf("1 отправил длину имени клиентского файла: %d\n", filename_len);
 
     // 2 отправить filename
     if (send_all(client_fd, filename, filename_len) < 0) {
@@ -102,6 +103,8 @@ int main(int argc, char *argv[]) {
         close(client_fd);
         exit(EXIT_FAILURE);
     }
+
+    printf("2 отправил название клиентского файла: %s\n", filename);
 
     // 3 отправить длину файла
     
@@ -127,6 +130,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    printf("3 отправил длину клиентского файла %s: %ld\n", filename, file_size);
+
     // 4 отправить содержимое файла filename
 
     char buffer[BUFFER_SIZE];
@@ -137,7 +142,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("отправил серверу файл %s\n", filename);
+    printf("4 отправил серверу содержимое файла %s\n", filename);
 
     // 5 получить результат
     uint8_t result;

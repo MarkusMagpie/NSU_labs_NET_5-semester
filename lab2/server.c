@@ -70,6 +70,8 @@ void *handle_client(void *arg) {
         exit(EXIT_FAILURE);
     }
 
+    printf("1 считал длину имени клиентского файла: %d\n", filename_len);
+
     // 2 считать название клиентского файла
     char *filename = malloc(filename_len + 1);
     if (recv_all(client_fd, filename, filename_len) < 0) {
@@ -79,6 +81,8 @@ void *handle_client(void *arg) {
         exit(EXIT_FAILURE);
     }
     filename[filename_len] = '\0';
+
+    printf("2 считал название клиентского файла: %s\n", filename);
 
     // отбрезаем путь оставляя только basename
     char *base = strrchr(filename, '/');
@@ -93,6 +97,8 @@ void *handle_client(void *arg) {
         exit(EXIT_FAILURE);
     }
     uint64_t file_size = be64toh(net_file_size);
+
+    printf("3 считал длину клиентского файла %s: %ld\n", filename, file_size);
 
     // 4 открыть файл для записи в uploads
     
@@ -118,7 +124,7 @@ void *handle_client(void *arg) {
     }
 
     // 5 считать содержимое клиентского файла в uploads + раз в 3 секунды выводить в консоль мгновенную скорость приёма и среднюю скорость за сеанс 
-    printf("начинаю копирование клиентского файла от клиента [%s:%d]:\n", client_ip, client_port);
+    printf("4 начинаю считывание и перезапись клиентского файла от клиента [%s:%d]:\n", client_ip, client_port);
     uint64_t now_received = 0, last_received = 0;
     // time_t start_time = time(NULL), last_time = start_time;
     struct timeval start_tv, last_tv, now_tv;
@@ -241,7 +247,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        printf("новое подключение от %s:%d\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
+        printf("новое подключение от %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
         // НОВОЕ: создаю поток (раньше был fork()) для обработки нового соединения
         pthread_t tid;
