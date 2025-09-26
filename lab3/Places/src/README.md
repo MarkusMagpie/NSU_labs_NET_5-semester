@@ -37,6 +37,8 @@ private final String OPENWEATHERMAP_API_KEY = "";
 private final String OPENTRIPMAP_API_KEY = "";
 ```
 
+
+
 ### 1.2.1 метод `searchLocations(String query)`
 ```java
 public CompletableFuture<List<Location>> searchLocations(String query) {
