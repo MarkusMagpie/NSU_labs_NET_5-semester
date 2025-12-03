@@ -4,7 +4,6 @@ import snakegame.io.PlayersManager;
 import snakegame.io.PlayersRateComp;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -27,7 +26,7 @@ public class PlayersTable extends JTable {
                     model.setValueAt("Role", i, 5);
                     i++;
                     ArrayList<SnakesProto.GamePlayer> playersList = new ArrayList<>(players);
-                    Collections.sort(playersList, new PlayersRateComp());
+                    playersList.sort(new PlayersRateComp());
                     boolean first = true;
                     for (var player : playersList) {
                         model.setValueAt(player.getId() == playersManager.getMyId() ? player.getId() + " (you)" : player.getId(), i, 0);

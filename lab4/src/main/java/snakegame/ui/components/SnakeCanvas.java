@@ -30,8 +30,8 @@ public class SnakeCanvas extends JPanel implements SnakeView {
     };
 
     public SnakeCanvas(Subject<Control> controlSubject) {
-        canvasWidth = 405;
-        canvasHeight = 305;
+        canvasWidth = 395;
+        canvasHeight = 295;
         setSize(canvasWidth, canvasHeight);
         setPreferredSize(new Dimension(canvasWidth, canvasHeight));
 
@@ -43,6 +43,10 @@ public class SnakeCanvas extends JPanel implements SnakeView {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "down");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), "left");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), "right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "right");
         Function<SnakesProto.Direction, AbstractAction> actionFactory = direction -> new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {

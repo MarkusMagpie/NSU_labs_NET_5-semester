@@ -24,7 +24,6 @@ public class GameUI {
     }
 
     private void initUI() {
-        // Init
         var frame = new JFrame("SNAKES ONLINE GAME");
 //        Taskbar taskbar = Taskbar.getTaskbar();
         ImageIcon icon = new ImageIcon("src/main/resources/snake.png");
